@@ -38,7 +38,7 @@ class Eth():
 class Eth_hpdaq_adc(Eth):
     def __init__(self, server_addr, server_port, trigger_depth, soft_trigger=True, timeout=None):
         super(Eth_hpdaq_adc, self).__init__(server_addr, server_port)
-        self._td = trigger_depth * 4
+        self._td = trigger_depth
         self._trigger = soft_trigger
         self._stop = False
         if timeout is None:

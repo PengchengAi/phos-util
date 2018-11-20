@@ -1,11 +1,13 @@
 import os
 import time
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-class DS_for_hpdaq_adc():
-    def __init__(self, savedir, max_sample=1000000, dis_interval=0):
+class DS_hpdaq_adc():
+    def __init__(self, savedir, conf, max_sample=1000000, dis_interval=0):
         self._savedir = savedir
+        self._conf = conf
         self._max_sample = max_sample
         self._dis_interval = dis_interval
         self._stop = False
@@ -37,6 +39,11 @@ class DS_for_hpdaq_adc():
         # make the dir
         os.makedirs(path)
         self._dir = path
+
+        # write configurations
+        conf_file = os.path.join(path, "conf.json")
+        with open(conf_file, "w") as outfile:
+            json.dump(self._conf, outfile, indent=4)
 
     def run(self, data_queue):
         initial_data = True
