@@ -12,7 +12,7 @@ parser.add_argument("--save_dir", type=str, required=True, help="where to save t
 parser.add_argument("--tri_type", type=str, default="soft", choices=["soft", "hard"], help="software trigger or hardware trigger")
 parser.add_argument("--tri_int", type=float, default=0.1, help="trigger interval for software trigger")
 parser.add_argument("--tri_num", type=int, default=100, help="trigger counts for software trigger")
-parser.add_argument("--tri_dep", type=int, default=1024, help="trigger depth")
+parser.add_argument("--tri_dep", type=int, default=8192, help="trigger depth")
 parser.add_argument("--timeout", type=float, default=10.0, help="trigger timeout")
 
 parser.add_argument("--server_addr", type=str, default="192.168.2.3", help="TCP server ip address")
@@ -20,6 +20,7 @@ parser.add_argument("--server_port", type=int, default=1024, help="TCP server po
 
 parser.add_argument("--dis_int", type=int, default=0, help="how often the ADC data is displayed (0 to disable)")
 parser.add_argument("--conf_file", type=str, help="input configuration json file")
+parser.add_argument("--verbose", type=int, default=1, help="print more information")
 
 a = parser.parse_args()
 
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     
     # initialize instances and queues
     eth_inst = ethernet.Eth_hpdaq_adc(server_addr=a.server_addr, server_port=a.server_port, trigger_depth=a.tri_depth,
-                                      soft_trigger=soft_trigger, timeout=a.timeout)
+                                      soft_trigger=soft_trigger, timeout=a.timeout, verbose=a.verbose)
     ds_inst = ds.DS_hpdaq_adc(savedir=a.save_dir, conf=a, max_sample=a.tri_num, dis_interval=a.dis_int)
 
     data_queue = multiprocessing.Queue()

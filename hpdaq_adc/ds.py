@@ -1,11 +1,12 @@
 import os
 import time
 import json
+import queue
 import numpy as np
 import matplotlib.pyplot as plt
 
 class DS_hpdaq_adc():
-    def __init__(self, savedir, conf, max_sample=1000000, dis_interval=0):
+    def __init__(self, savedir, conf, max_sample=100, dis_interval=0):
         self._savedir = savedir
         self._conf = conf
         self._max_sample = max_sample
@@ -43,25 +44,29 @@ class DS_hpdaq_adc():
         # write configurations
         conf_file = os.path.join(path, "conf.json")
         with open(conf_file, "w") as outfile:
-            json.dump(self._conf, outfile, indent=4)
+            json.dump(self._conf, outfile, indent=4, sort_keys=True)
 
     def run(self, data_queue):
         initial_data = True
         ii = 0
         while not self._stop:
             ii = ii + 1
-            data = data_queue.get()
+            try:
+                data = data_queue.get(timeout=10)
+            except queue.Empty:
+                print("data queue timeout occurred in data processing")
+                continue
             if initial_data:
                 self.makedir()
                 initial_data = False
-            assert not len(data) % 4
+            assert not len(data) % 8
             
             # split channels
-            cnt = len(data) // 4
-            ch0 = [data[i*4] for i in range(cnt)]
-            ch1 = [data[i*4+1] for i in range(cnt)]
-            ch2 = [data[i*4+2] for i in range(cnt)]
-            ch3 = [data[i*4+3] for i in range(cnt)]
+            cnt = len(data) // 8
+            ch0 = [data[i*8] * 0x100 + data[i*8+1] for i in range(cnt)]
+            ch1 = [data[i*8+2] * 0x100 + data[i*8+3] for i in range(cnt)]
+            ch2 = [data[i*8+4] * 0x100 + data[i*8+5] for i in range(cnt)]
+            ch3 = [data[i*8+6] * 0x100 + data[i*8+7] for i in range(cnt)]
 
             # display channel data (optional)
             if self._dis_interval > 0 and (not (ii % self._dis_interval)):

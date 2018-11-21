@@ -1,5 +1,6 @@
 import socket
 import time
+import queue
 
 class Eth():
     def __init__(self, server_addr, server_port):
@@ -36,13 +37,14 @@ class Eth():
         self.client.close()
 
 class Eth_hpdaq_adc(Eth):
-    def __init__(self, server_addr, server_port, trigger_depth, soft_trigger=True, timeout=None):
+    def __init__(self, server_addr, server_port, trigger_depth, soft_trigger=True, timeout=None, verbose=1):
         super(Eth_hpdaq_adc, self).__init__(server_addr, server_port)
         self._td = trigger_depth
         self._trigger = soft_trigger
         self._stop = False
         if timeout is None:
             self._timeout = 10
+        self._verbose = True if verbose else False
 
     def init_hpdaq(self):
         # set trigger mode
@@ -64,6 +66,9 @@ class Eth_hpdaq_adc(Eth):
         self.send("000b0008")
 
     def run(self, data_queue, trigger_queue=None):
+        # initialize
+        self.init_hpdaq()
+        # main loop
         while not self._stop:
             if self._trigger:
                 if trigger_queue is None:
@@ -71,7 +76,11 @@ class Eth_hpdaq_adc(Eth):
                     return
 
                 # wait for trigger command
-                trigger_queue.get()
+                try:
+                    trigger_queue.get(timeout=10)
+                except queue.Empty:
+                    print("software trigger queue timeout occurred in the ethernet module")
+                    continue
 
                 # send soft trigger signal
                 self.send("000b0010")
@@ -121,10 +130,12 @@ class Eth_hpdaq_adc(Eth):
             # set fifo reading length (low 16 bits) and read fifo
             self.send("0019%04x" % (self._td & 0x0000ffff))
             data = self.recv(self._td & 0xffffffff)
-            print("receive valid data: %d bytes" % (len(data)))
+            if self._verbose:
+                print("receive valid data: %d bytes" % (len(data)))
             data_queue.put(data)
 
         print("stopping command is sent to ethernet module")
+        self.close()
         return
 
     def stop(self):
