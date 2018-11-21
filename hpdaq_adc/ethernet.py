@@ -18,7 +18,7 @@ class Eth():
         else:
             self.client.send(string)
 
-    def recv(self, length=None, format="h"):
+    def recv(self, length=None, to_list=True):
         """ receive and convert it into a list
         """
         if isinstance(length, int):
@@ -26,9 +26,7 @@ class Eth():
         else:
             data = self.client.recv(65536)
 
-        if format == "h":
-            data = [hex(ord(i)) for i in data]
-        else:
+        if to_list:
             data = [i for i in data]
 
         return data
@@ -44,6 +42,8 @@ class Eth_hpdaq_adc(Eth):
         self._stop = False
         if timeout is None:
             self._timeout = 10
+        else:
+            self._timeout = timeout
         self._verbose = True if verbose else False
 
     def init_hpdaq(self):

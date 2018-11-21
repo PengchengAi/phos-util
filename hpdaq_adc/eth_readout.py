@@ -26,7 +26,7 @@ a = parser.parse_args()
 
 if __name__ == "__main__":
     # load configuration from json file
-    options = a.keys()
+    options = vars(a).keys()
     if a.conf_file is not None:
         with open(a.conf_file) as f:
             for key, val in json.loads(f.read()).items():
@@ -40,9 +40,9 @@ if __name__ == "__main__":
         soft_trigger = False
     
     # initialize instances and queues
-    eth_inst = ethernet.Eth_hpdaq_adc(server_addr=a.server_addr, server_port=a.server_port, trigger_depth=a.tri_depth,
+    eth_inst = ethernet.Eth_hpdaq_adc(server_addr=a.server_addr, server_port=a.server_port, trigger_depth=a.tri_dep,
                                       soft_trigger=soft_trigger, timeout=a.timeout, verbose=a.verbose)
-    ds_inst = ds.DS_hpdaq_adc(savedir=a.save_dir, conf=a, max_sample=a.tri_num, dis_interval=a.dis_int)
+    ds_inst = ds.DS_hpdaq_adc(savedir=a.save_dir, conf=vars(a), max_sample=a.tri_num, dis_interval=a.dis_int)
 
     data_queue = multiprocessing.Queue()
     if soft_trigger:
