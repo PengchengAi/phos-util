@@ -2,6 +2,7 @@ import os
 import time
 import json
 import queue
+import multiprocessing
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,7 +12,7 @@ class DS_hpdaq_adc():
         self._conf = conf
         self._max_sample = max_sample
         self._dis_interval = dis_interval
-        self._stop = False
+        self._stop = multiprocessing.Event()
 
         if max_sample > 1000000:
             self._max_sample = 1000000
@@ -49,7 +50,7 @@ class DS_hpdaq_adc():
     def run(self, data_queue):
         initial_data = True
         ii = 0
-        while not self._stop:
+        while not self._stop.is_set():
             ii = ii + 1
             try:
                 data = data_queue.get(timeout=10)
@@ -83,4 +84,4 @@ class DS_hpdaq_adc():
                 return
 
     def stop(self):
-        self._stop = True
+        self._stop.set()

@@ -1,6 +1,7 @@
 import socket
 import time
 import queue
+import multiprocessing
 
 class Eth():
     def __init__(self, server_addr, server_port):
@@ -39,7 +40,7 @@ class Eth_hpdaq_adc(Eth):
         super(Eth_hpdaq_adc, self).__init__(server_addr, server_port)
         self._td = trigger_depth
         self._trigger = soft_trigger
-        self._stop = False
+        self._stop = multiprocessing.Event()
         if timeout is None:
             self._timeout = 10
         else:
@@ -69,7 +70,7 @@ class Eth_hpdaq_adc(Eth):
         # initialize
         self.init_hpdaq()
         # main loop
-        while not self._stop:
+        while not self._stop.is_set():
             if self._trigger:
                 if trigger_queue is None:
                     print("configuration error: trigger_queue must be provided in soft trigger mode")
@@ -139,4 +140,4 @@ class Eth_hpdaq_adc(Eth):
         return
 
     def stop(self):
-        self._stop = True
+        self._stop.set()
