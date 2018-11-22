@@ -4,15 +4,19 @@ import queue
 import multiprocessing
 
 class Eth():
-    def __init__(self, server_addr, server_port):
+    def __init__(self, server_addr, server_port, verbose):
         self.host = server_addr
         self.port = server_port
+        self._verbose = True if verbose else False
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client.connect((self.host, self.port))
 
     def send(self, string, format="h"):
         """ send a string in hex or other format
         """
+        if self._verbose:
+            print("send:", string)
+
         if format == "h":
             data = bytes.fromhex(string)
             self.client.send(data)
@@ -30,6 +34,9 @@ class Eth():
         if to_list:
             data = [i for i in data]
 
+        if self._verbose and len(data) <= 16:
+            print("recv:", data)
+
         return data
 
     def close(self):
@@ -37,7 +44,7 @@ class Eth():
 
 class Eth_hpdaq_adc(Eth):
     def __init__(self, server_addr, server_port, trigger_depth, soft_trigger=True, timeout=None, verbose=1):
-        super(Eth_hpdaq_adc, self).__init__(server_addr, server_port)
+        super(Eth_hpdaq_adc, self).__init__(server_addr, server_port, verbose)
         self._td = trigger_depth
         self._trigger = soft_trigger
         self._stop = multiprocessing.Event()
@@ -45,7 +52,6 @@ class Eth_hpdaq_adc(Eth):
             self._timeout = 10
         else:
             self._timeout = timeout
-        self._verbose = True if verbose else False
 
     def init_hpdaq(self):
         # set trigger mode
@@ -63,17 +69,18 @@ class Eth_hpdaq_adc(Eth):
         self.send("002b0%03x" % ((td_init & 0x0fff0000) >> 16))
         self.send("002a%04x" % (td_init & 0x0000ffff))
 
-        # start storing data
-        self.send("000b0008")
-
     def run(self, data_queue, trigger_queue=None):
         # initialize
         self.init_hpdaq()
         # main loop
         while not self._stop.is_set():
+            # start storing data
+            self.send("000b0008")
+
             if self._trigger:
                 if trigger_queue is None:
                     print("configuration error: trigger_queue must be provided in soft trigger mode")
+                    self.close()
                     return
 
                 # wait for trigger command
@@ -130,9 +137,19 @@ class Eth_hpdaq_adc(Eth):
 
             # set fifo reading length (low 16 bits) and read fifo
             self.send("0019%04x" % (self._td & 0x0000ffff))
-            data = self.recv(self._td & 0xffffffff)
+            time.sleep(0.001)
+            try:
+                self.client.settimeout(0.09)
+                data = self.recv()
+                self.client.settimeout(None)
+            except socket.timeout:
+                print("receive data timeout")
+                self.client.settimeout(None)
+                continue
+
             if self._verbose:
                 print("receive valid data: %d bytes" % (len(data)))
+
             data_queue.put(data)
 
         print("stopping command is sent to ethernet module")

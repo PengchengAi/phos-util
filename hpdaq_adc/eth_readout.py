@@ -12,7 +12,7 @@ parser.add_argument("--save_dir", type=str, required=True, help="where to save t
 parser.add_argument("--tri_type", type=str, default="soft", choices=["soft", "hard"], help="software trigger or hardware trigger")
 parser.add_argument("--tri_int", type=float, default=0.1, help="trigger interval for software trigger")
 parser.add_argument("--tri_num", type=int, default=100, help="trigger counts for software trigger")
-parser.add_argument("--tri_dep", type=int, default=8192, help="trigger depth")
+parser.add_argument("--tri_dep", type=int, default=2048, help="trigger depth")
 parser.add_argument("--timeout", type=float, default=10.0, help="trigger timeout")
 
 parser.add_argument("--server_addr", type=str, default="192.168.2.3", help="TCP server ip address")
@@ -61,12 +61,15 @@ if __name__ == "__main__":
     try:
         if soft_trigger:
             for ii in range(a.tri_num):
+                if not ds_proc.is_alive() or not eth_proc.is_alive():
+                    print("the process exits before soft trigger completes")
+                    break
                 trigger_queue.put([])
                 time.sleep(a.tri_int)
 
             print("soft trigger exits")
         else:
-            while ds_proc.is_alive():
+            while ds_proc.is_alive() and eth_proc.is_alive():
                 time.sleep(1)
     
         # processes exit
