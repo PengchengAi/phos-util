@@ -51,7 +51,6 @@ class DS_hpdaq_adc():
         initial_data = True
         ii = 0
         while not self._stop.is_set():
-            ii = ii + 1
             try:
                 data = data_queue.get(timeout=10)
             except queue.Empty:
@@ -60,14 +59,22 @@ class DS_hpdaq_adc():
             if initial_data:
                 self.makedir()
                 initial_data = False
-            assert not len(data) % 8
+
+            try:
+                assert not len(data) % 8
+            except:
+                print("data length mismatches in data processing")
+                continue
+
+            # receive valid data, increase ii
+            ii = ii + 1
             
             # split channels
             cnt = len(data) // 8
-            ch0 = [data[i*8] * 0x100 + data[i*8+1] for i in range(cnt)]
-            ch1 = [data[i*8+2] * 0x100 + data[i*8+3] for i in range(cnt)]
-            ch2 = [data[i*8+4] * 0x100 + data[i*8+5] for i in range(cnt)]
-            ch3 = [data[i*8+6] * 0x100 + data[i*8+7] for i in range(cnt)]
+            ch0 = [(data[i*8] * 0x100 + data[i*8+1] + 0x8000) & 0xffff for i in range(cnt)]
+            ch1 = [(data[i*8+2] * 0x100 + data[i*8+3] + 0x8000) & 0xffff for i in range(cnt)]
+            ch2 = [(data[i*8+4] * 0x100 + data[i*8+5] + 0x8000) & 0xffff for i in range(cnt)]
+            ch3 = [(data[i*8+6] * 0x100 + data[i*8+7] + 0x8000) & 0xffff for i in range(cnt)]
 
             # display channel data (optional)
             if self._dis_interval > 0 and (not (ii % self._dis_interval)):

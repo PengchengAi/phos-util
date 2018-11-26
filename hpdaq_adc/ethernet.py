@@ -98,12 +98,17 @@ class Eth_hpdaq_adc(Eth):
             while time.time() - t0 < self._timeout:
                 self.send("80090000")
                 data = self.recv(16)
-                assert len(data) == 4
+                try:
+                    assert len(data) == 4
+                except:
+                    print("80090000 assertion fails")
+                    valid = False
+                    break
                 if not (data[2] & 0x10): # valid trigger is detected on hpdaq
                     valid = True
                     break
             if not valid:
-                print("trigger waiting time out")
+                print("trigger waiting time out or assertion fails")
                 continue
 
             # read the address when trigger is detected
@@ -111,12 +116,20 @@ class Eth_hpdaq_adc(Eth):
             # high 12 bits
             self.send("80090000")
             data = self.recv(16)
-            assert len(data) == 4
+            try:
+                assert len(data) == 4
+            except:
+                print("80090000 assertion fails")
+                continue
             tr_addr += ((data[2] & 0x0f) * 0x100 + data[3]) * 0x10000
             # low 16 bits
             self.send("80080000")
             data = self.recv(16)
-            assert len(data) == 4
+            try:
+                assert len(data) == 4
+            except:
+                print("80080000 assertion fails")
+                continue
             tr_addr += data[2] * 0x100 + data[3]
 
             # set the address where reading starts
