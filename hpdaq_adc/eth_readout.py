@@ -67,17 +67,17 @@ if __name__ == "__main__":
                 trigger_queue.put([])
                 time.sleep(a.tri_int)
 
+                ds_inst.stop()
+                ds_proc.join()
+
             print("soft trigger exits")
         else:
-            while ds_proc.is_alive() and eth_proc.is_alive():
+            while ds_proc.is_alive():
                 time.sleep(1)
-    
+
         # processes exit
         eth_inst.stop()
-        ds_inst.stop()
-
-        eth_proc.join()
-        ds_proc.join()
+        eth_inst.join()
 
         print("the program exits normally")
         exit(0)
