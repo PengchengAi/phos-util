@@ -64,7 +64,7 @@ def gen_one_sample(data_file, short_dir, long_dir):
 
     return 0
 
-def generate_data(start_index, perm, data_dir, short_dir, long_dir, count):
+def generate_data(start_index, perm, raw_dir, short_dir, long_dir, count):
     raw_data_length = len(perm)
 
     index = start_index
@@ -73,7 +73,7 @@ def generate_data(start_index, perm, data_dir, short_dir, long_dir, count):
         if index >= raw_data_length:
             print("finish using raw dataset")
             break
-        data_file = os.path.join(data_dir, "%08d.bin", perm[index]+1)
+        data_file = os.path.join(raw_dir, "%08d.bin", perm[index]+1)
         ret = gen_one_sample(data_file, short_dir, long_dir)
         if ret == -2:
             break
@@ -83,12 +83,14 @@ def generate_data(start_index, perm, data_dir, short_dir, long_dir, count):
             index = index + 1
             count_gen = count_gen + 1
 
+        if not count_gen % 1000:
+            print("-------generate %d samples--------" % (count_gen))
+
     return index
 
 
 if __name__ == "__main__":
-    data_dir = "/home/plac/dataset/phos_adc/2018-12-05-11-38-33/"
-
+    raw_dir = "/home/plac/dataset/phos_adc/2018-12-05-11-38-33/"
     save_dir = "/home/plac/dataset/phos_adc/ds_1/"
 
     data_file_count = 120000
@@ -103,21 +105,21 @@ if __name__ == "__main__":
     perm = list(range(data_file_count))
     random.shuffle(perm)
 
-    if os.path.exists(data_dir):
-        print("The data directory already exists. Exit.")
+    if os.path.exists(save_dir):
+        print("The save directory already exists. Exit.")
         exit(-1)
     
     # prepare directories to store the data
     data_paths = {}
     if train_cnt > 0:
-        data_paths["short_train"] = os.path.join(data_dir, "short", "train")
-        data_paths["long_train"] = os.path.join(data_dir, "long", "train")
+        data_paths["short_train"] = os.path.join(save_dir, "short", "train")
+        data_paths["long_train"] = os.path.join(save_dir, "long", "train")
     if test_cnt > 0:
-        data_paths["short_test"] = os.path.join(data_dir, "short", "test")
-        data_paths["long_test"] = os.path.join(data_dir, "long", "test")
+        data_paths["short_test"] = os.path.join(save_dir, "short", "test")
+        data_paths["long_test"] = os.path.join(save_dir, "long", "test")
     if val_cnt > 0:
-        data_paths["short_val"] = os.path.join(data_dir, "short", "val")
-        data_paths["long_val"] = os.path.join(data_dir, "long", "val")
+        data_paths["short_val"] = os.path.join(save_dir, "short", "val")
+        data_paths["long_val"] = os.path.join(save_dir, "long", "val")
     
     # make empty directories
     for value in data_paths.values():
@@ -126,13 +128,13 @@ if __name__ == "__main__":
     # generate data
     start_index = 0
     if train_cnt > 0:
-        start_index = generate_data(start_index, perm, data_dir, data_paths["short_train"], data_paths["long_train"], train_cnt)
+        start_index = generate_data(start_index, perm, raw_dir, data_paths["short_train"], data_paths["long_train"], train_cnt)
         print("write %d samples to the training set" % (train_cnt))
     if test_cnt > 0:
-        start_index = generate_data(start_index, perm, data_dir, data_paths["short_test"], data_paths["long_test"], test_cnt)
+        start_index = generate_data(start_index, perm, raw_dir, data_paths["short_test"], data_paths["long_test"], test_cnt)
         print("write %d samples to the test set" % (test_cnt))
     if val_cnt > 0:
-        _ = generate_data(start_index, data_dir, perm, data_paths["short_val"], data_paths["long_val"], val_cnt)
+        _ = generate_data(start_index, perm, raw_dir, data_paths["short_val"], data_paths["long_val"], val_cnt)
         print("write %d samples to the validation set" % (val_cnt))
 
     print("data generation finished")
