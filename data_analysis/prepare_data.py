@@ -41,6 +41,9 @@ def gen_one_sample(data_file, short_dir, long_dir):
     actual_start = int(round(x_start / 12.0)) * 12
     label = (x_trigger - actual_start) / 125
 
+    points = 33
+    super_res = 8
+
     actural_end = actual_start + (points - 1) * 12
     x_short = list(range(actual_start, actural_end + 12, 12))
 
@@ -69,15 +72,17 @@ def generate_data(start_index, perm, raw_dir, short_dir, long_dir, count):
 
     index = start_index
     count_gen = 0
+    print("begin from index:", index)
     while count_gen < count:
         if index >= raw_data_length:
             print("finish using raw dataset")
             break
-        data_file = os.path.join(raw_dir, "%08d.bin", perm[index]+1)
+        data_file = os.path.join(raw_dir, "%08d.bin" % (perm[index]+1))
         ret = gen_one_sample(data_file, short_dir, long_dir)
         if ret == -2:
             break
         elif ret == -1:
+            index = index + 1
             continue
         else:
             index = index + 1
@@ -98,9 +103,6 @@ if __name__ == "__main__":
     train_cnt = 80000
     test_cnt = 20000
     val_cnt = 0
-
-    points = 33
-    super_res = 8
 
     perm = list(range(data_file_count))
     random.shuffle(perm)
