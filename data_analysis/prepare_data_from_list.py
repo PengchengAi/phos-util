@@ -9,10 +9,9 @@ from scipy import interpolate
 parser = argparse.ArgumentParser()
 parser.add_argument("--raw_dir", required=True, help="where the raw data is")
 parser.add_argument("--save_dir", required=True, help="where to save processed data")
-parser.add_argument("--total_cnt", type=int, default=120000, help="total files in the raw dataset")
-parser.add_argument("--train_cnt", type=int, default=80000, help="training dataset size")
-parser.add_argument("--test_cnt", type=int, default=20000, help="test dataset size")
-parser.add_argument("--val_cnt", type=int, default=0, help="validation dataset size")
+parser.add_argument("--train_list", default=None, help="training dataset list")
+parser.add_argument("--test_list", default=None, help="test dataset list")
+parser.add_argument("--val_list", default=None, help="validation dataset list")
 
 parser.add_argument("--freq", type=int, default=125, help="ADC sampling frequency (MHz)")
 parser.add_argument("--start_int", type=int, default=125, help="the interval between trigger and pulse start")
@@ -91,44 +90,35 @@ def gen_one_sample(data_file, short_dir, long_dir):
 
     return 0
 
-def generate_data(start_index, perm, raw_dir, short_dir, long_dir, count):
-    raw_data_length = len(perm)
+def generate_data(file_list, raw_dir, short_dir, long_dir):
+    # get dataset from the list file
+    with open(file_list, mode="r") as f:
+        dataset = f.readlines()
 
-    index = start_index
     count_gen = 0
-    print("begin from index:", index)
-    while count_gen < count:
-        if index >= raw_data_length:
-            print("finish using raw dataset")
-            break
-        data_file = os.path.join(raw_dir, "%08d.bin" % (perm[index]+1))
+    for fn in dataset:
+        data_file = os.path.join(raw_dir, fn)
         ret = gen_one_sample(data_file, short_dir, long_dir)
         if ret == -2:
             break
         elif ret == -1:
-            index = index + 1
             continue
         else:
-            index = index + 1
             count_gen = count_gen + 1
 
         if not count_gen % 1000:
             print("-------generate %d samples--------" % (count_gen))
 
-    return index
+    print("expect: %d files, get: %d files" % (len(dataset), count_gen))
 
 
 if __name__ == "__main__":
     # get parameters from arguments
     raw_dir = a.raw_dir
     save_dir = a.save_dir
-    data_file_count = a.total_cnt
-    train_cnt = a.train_cnt
-    test_cnt = a.test_cnt
-    val_cnt = a.val_cnt
-
-    perm = list(range(data_file_count))
-    random.shuffle(perm)
+    train_list = a.train_list
+    test_list = a.test_list
+    val_list = a.val_list
 
     if os.path.exists(save_dir):
         print("The save directory already exists. Exit.")
@@ -139,13 +129,13 @@ if __name__ == "__main__":
     
     # prepare directories to store the data
     data_paths = {}
-    if train_cnt > 0:
+    if train_list is not None:
         data_paths["short_train"] = os.path.join(save_dir, "short", "train")
         data_paths["long_train"] = os.path.join(save_dir, "long", "train")
-    if test_cnt > 0:
+    if test_list is not None:
         data_paths["short_test"] = os.path.join(save_dir, "short", "test")
         data_paths["long_test"] = os.path.join(save_dir, "long", "test")
-    if val_cnt > 0:
+    if val_list is not None:
         data_paths["short_val"] = os.path.join(save_dir, "short", "val")
         data_paths["long_val"] = os.path.join(save_dir, "long", "val")
     
@@ -154,15 +144,11 @@ if __name__ == "__main__":
         os.makedirs(value)
 
     # generate data
-    start_index = 0
-    if train_cnt > 0:
-        start_index = generate_data(start_index, perm, raw_dir, data_paths["short_train"], data_paths["long_train"], train_cnt)
-        print("write %d samples to the training set" % (train_cnt))
-    if test_cnt > 0:
-        start_index = generate_data(start_index, perm, raw_dir, data_paths["short_test"], data_paths["long_test"], test_cnt)
-        print("write %d samples to the test set" % (test_cnt))
-    if val_cnt > 0:
-        _ = generate_data(start_index, perm, raw_dir, data_paths["short_val"], data_paths["long_val"], val_cnt)
-        print("write %d samples to the validation set" % (val_cnt))
+    if train_list is not None:
+        generate_data(train_list, raw_dir, data_paths["short_train"], data_paths["long_train"])
+    if test_list is not None:
+        generate_data(test_list, raw_dir, data_paths["short_test"], data_paths["long_test"])
+    if val_list is not None:
+        generate_data(val_list, raw_dir, data_paths["short_val"], data_paths["long_val"])
 
     print("data generation finished")
