@@ -1,22 +1,31 @@
 import os
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-data_dir = "/home/plac/dataset/phos_adc/ds_test/"
+parser = argparse.ArgumentParser()
+parser.add_argument("--data_dir", default="/home/plac/dataset/phos_adc/ds_4/", help="where the dataset is")
+parser.add_argument("--index", type=int, default=2, help="which sample to choose")
+
+a = parser.parse_args()
 
 if __name__ == "__main__":
-    index = 810
+    data_dir = a.data_dir
+    index = a.index
+
     short_file = os.path.join(data_dir, "short", "train", "%08d.bin" % (index))
     long_file = os.path.join(data_dir, "long", "train", "%08d.bin" % (index))
 
     y_short_noise = np.fromfile(short_file, dtype=np.float32)
     y_long_noise = np.fromfile(long_file, dtype=np.float32)
 
-    print("time label:", y_short_noise[33])
-    y_short_noise = y_short_noise[0:33]
+    print("time label:", y_short_noise[-1])
+    y_short_noise = y_short_noise[0:-1]
 
-    points = 33
-    super_res = 8
+    assert not len(y_long_noise) % (len(y_short_noise) - 1)
+    points = len(y_short_noise)
+    super_res = len(y_long_noise) // (len(y_short_noise) - 1)
+    print("points:", points, "super_res:", super_res)
 
     x_short = np.linspace(0, (points-1)*super_res, points, endpoint=True)
     x_long = np.linspace(0, (points-1)*super_res, (points-1)*super_res, endpoint=False)

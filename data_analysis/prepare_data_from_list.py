@@ -96,12 +96,16 @@ def generate_data(file_list, raw_dir, short_dir, long_dir):
         dataset = f.readlines()
 
     count_gen = 0
-    for fn in dataset:
+    for line in dataset:
+        fn = str(line).strip("\n").strip(" ")
+        if fn == "":
+            break
         data_file = os.path.join(raw_dir, fn)
         ret = gen_one_sample(data_file, short_dir, long_dir)
         if ret == -2:
             break
         elif ret == -1:
+            print(fn, "failed")
             continue
         else:
             count_gen = count_gen + 1
@@ -123,6 +127,8 @@ if __name__ == "__main__":
     if os.path.exists(save_dir):
         print("The save directory already exists. Exit.")
         exit(-1)
+
+    os.makedirs(save_dir)
 
     with open(os.path.join(save_dir, "options.json"), mode="w") as f:
         f.write(json.dumps(vars(a), sort_keys=True, indent=4))

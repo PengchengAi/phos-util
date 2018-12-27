@@ -134,6 +134,8 @@ if __name__ == "__main__":
         print("The save directory already exists. Exit.")
         exit(-1)
 
+    os.makedirs(save_dir)
+
     with open(os.path.join(save_dir, "options.json"), mode="w") as f:
         f.write(json.dumps(vars(a), sort_keys=True, indent=4))
     
