@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", default="/home/plac/dataset/phos_adc/ds_5/", help="where the dataset is")
+parser.add_argument("--data_dir", default="/home/plac/dataset/phos_adc/ds_6/", help="where the dataset is")
 parser.add_argument("--index", type=int, default=2, help="which sample to choose")
 
 a = parser.parse_args()

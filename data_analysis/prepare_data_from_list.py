@@ -20,6 +20,8 @@ parser.add_argument("--down_sample", type=int, default=12, help="down sampling r
 parser.add_argument("--points", type=int, default=33, help="how many points in a sample")
 parser.add_argument("--super_res", type=int, default=8, help="super resolution ratio")
 
+parser.add_argument("--int_kind", default="cubic", help="interpolation kind")
+
 a = parser.parse_args()
 
 def read_bin_file(data_file):
@@ -58,6 +60,7 @@ def gen_one_sample(data_file, short_dir, long_dir):
     down_sample = a.down_sample
     points = a.points
     super_res = a.super_res
+    int_kind = a.int_kind
 
     x_trigger = min([e for e in tri_sel_ind if tri[e] == 65535])
     x_start = x_trigger + start_int
@@ -73,7 +76,7 @@ def gen_one_sample(data_file, short_dir, long_dir):
     # interpolate
     y_short_noise = [pul[e] for e in x_short]
     y_short_noise = np.array(y_short_noise).astype(np.float32) / 24865 + 0.1688
-    func = interpolate.interp1d(x_short, y_short_noise, kind="cubic")
+    func = interpolate.interp1d(x_short, y_short_noise, kind=int_kind)
     x_long = np.linspace(actual_start, actural_end, (points-1)*super_res, endpoint=False)
     y_long_noise = func(x_long)
 
