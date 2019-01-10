@@ -2,7 +2,7 @@ import time
 import json
 import multiprocessing
 import argparse
-import ds
+import ds_filter
 import ethernet
 
 parser = argparse.ArgumentParser()
@@ -13,6 +13,7 @@ parser.add_argument("--tri_type", type=str, default="soft", choices=["soft", "ha
 parser.add_argument("--tri_int", type=float, default=0.1, help="trigger interval for software trigger")
 parser.add_argument("--tri_num", type=int, default=100, help="trigger counts for software trigger")
 parser.add_argument("--tri_dep", type=int, default=2048, help="trigger depth")
+parser.add_argument("--tri_height", type=int, default=50000, help="the height of the trigger signal")
 parser.add_argument("--timeout", type=float, default=10.0, help="trigger timeout")
 
 parser.add_argument("--server_addr", type=str, default="192.168.2.3", help="TCP server ip address")
@@ -42,7 +43,8 @@ if __name__ == "__main__":
     # initialize instances and queues
     eth_inst = ethernet.Eth_hpdaq_adc(server_addr=a.server_addr, server_port=a.server_port, trigger_depth=a.tri_dep,
                                       soft_trigger=soft_trigger, timeout=a.timeout, verbose=a.verbose)
-    ds_inst = ds.DS_hpdaq_adc(savedir=a.save_dir, conf=vars(a), max_sample=a.tri_num, dis_interval=a.dis_int)
+    ds_inst = ds_filter.DS_hpdaq_adc_filter(savedir=a.save_dir, conf=vars(a), max_sample=a.tri_num, dis_interval=a.dis_int,
+                                            data_length=a.tri_dep, tri_height=a.tri_height)
 
     data_queue = multiprocessing.Queue()
     if soft_trigger:
