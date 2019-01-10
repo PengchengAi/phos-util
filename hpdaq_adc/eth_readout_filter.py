@@ -40,11 +40,13 @@ if __name__ == "__main__":
     else:
         soft_trigger = False
     
+    # tri_dep * 32 / (8 * 8)
+    data_length = a.tri_dep / 2
     # initialize instances and queues
     eth_inst = ethernet.Eth_hpdaq_adc(server_addr=a.server_addr, server_port=a.server_port, trigger_depth=a.tri_dep,
                                       soft_trigger=soft_trigger, timeout=a.timeout, verbose=a.verbose)
     ds_inst = ds_filter.DS_hpdaq_adc_filter(savedir=a.save_dir, conf=vars(a), max_sample=a.tri_num, dis_interval=a.dis_int,
-                                            data_length=a.tri_dep, tri_height=a.tri_height)
+                                            data_length=data_length, tri_height=a.tri_height)
 
     data_queue = multiprocessing.Queue()
     if soft_trigger:
