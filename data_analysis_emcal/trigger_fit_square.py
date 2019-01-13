@@ -12,8 +12,13 @@ parser.add_argument("--verbose", type=int, default=1, help="whether to print and
 
 a = parser.parse_args()
 
-def trigger(x, t_0, T1, T2, K, base):
-    f = lambda t: K / (T2 - T1) * (np.exp(-(t - t_0) / T2) - np.exp(-(t - t_0) / T1)) + base
+def step_response(x, t_0, T1, T2, K, base):
+    f = lambda t: K * (1 + T1 / (T2 - T1) * np.exp(-(t - t_0) / T2) - T2 / (T2 - T1) * np.exp(-(t - t_0) / T1))
+    res = np.piecewise(x, [x < t_0, x >= t_0], [base, f])
+    return res
+
+def trigger(x, t_0, T1, T2, K, base, w):
+    f = lambda t: step_response(t, t_0, T1, T2, K, base) - step_response(t, t_0+w, T1, T2, K, base)
     return f(x)
 
 def consecutive(data, stepsize=1):
@@ -60,13 +65,16 @@ def tri_process(tri, title, thresh=200):
     norm_points = (arr_clip[select_points] - most_value) / 25000
     
     # fit model
-    T1, T2 = 2.5025, 2.503
+    T1, T2 = 3.336, 45.047
+    w = 2.988
     base = 0
-    tri_simple = lambda x, t_0, K: trigger(x, t_0, T1, T2, K, base)
+    # tri_simple = lambda x, t_0, T1, T2, K, w: trigger(x, t_0, T1, T2, K, base, w)
+    tri_simple = lambda x, t_0, K: trigger(x, t_0, T1, T2, K, base, w)
     xval = np.linspace(0, select_points_num, select_points_num, endpoint=False)
     yval = norm_points
     gmodel = lmfit.Model(tri_simple)
-    result = gmodel.fit(yval, x=xval, t_0=0.0, K=4.0)
+    # result = gmodel.fit(yval, x=xval, t_0=0.0, T1=2.0, T2=4.0, K=3, w=0.3)
+    result = gmodel.fit(yval, x=xval, t_0=0.0, K=1.348)
 
     best_t_0 = result.best_values["t_0"]
     label_t_0 = refer_point + best_t_0
