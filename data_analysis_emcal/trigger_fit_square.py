@@ -13,7 +13,7 @@ parser.add_argument("--verbose", type=int, default=1, help="whether to print and
 a = parser.parse_args()
 
 def step_response(x, t_0, T1, T2, K, base):
-    f = lambda t: K * (1 + T1 / (T2 - T1) * np.exp(-(t - t_0) / T2) - T2 / (T2 - T1) * np.exp(-(t - t_0) / T1))
+    f = lambda t: K * (1 + T1 / (T2 - T1) * np.exp(-(t - t_0) / T2) - T2 / (T2 - T1) * np.exp(-(t - t_0) / T1)) + base
     res = np.piecewise(x, [x < t_0, x >= t_0], [base, f])
     return res
 
@@ -32,7 +32,7 @@ def read_bin_file(data_file):
 
     return (pul, tri)
 
-def tri_process(tri, title, thresh=200):
+def tri_process(tri, title, thresh=200, active=24, coarse=False):
     # convert to numpy array
     arr = np.array(tri, dtype=np.int32)
     # reject signal with step
@@ -53,16 +53,25 @@ def tri_process(tri, title, thresh=200):
     valid_points = np.where(arr_clip >= most_value + thresh)[0]
     valid_cluster = consecutive(valid_points)
     valid_cluster_num = list(map(lambda x: x.shape[0], valid_cluster))
+    valid_total_num = len(valid_points)
+    if valid_total_num > active:
+        print("there is an abnormal stage in the trigger signal")
+        return None
     # select the longest cluster
     select_points = valid_cluster[np.argmax(valid_cluster_num)]
     select_points_num = len(select_points)
-    # print information
-    print("min:", tmin, "max:", tmax, "most:", most_value, "valid num:", valid_num,
-          "cluster:", valid_cluster_num, "select:", select_points_num)
+    if a.verbose:
+        # print information
+        print("min:", tmin, "max:", tmax, "most:", most_value, "valid num:", valid_num,
+              "cluster:", valid_cluster_num, "select:", select_points_num)
     
     # process select points
     refer_point = select_points[0]
     norm_points = (arr_clip[select_points] - most_value) / 25000
+
+    # if we only need coarse result
+    if coarse:
+        return (len(valid_cluster) > 1, refer_point, refer_point, 0.0)
     
     # fit model
     T1, T2 = 3.336, 45.047
