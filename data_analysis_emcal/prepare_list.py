@@ -90,7 +90,7 @@ def generate_data(start_index, perm, raw_dir, list_path, count):
     index = start_index
     count_gen = 0
     print("begin from index:", index)
-    with open(list_path, "w") as f:
+    with open(list_path, mode="w") as f:
         while count_gen < count:
             if index >= raw_data_length:
                 print("finish using raw dataset")
