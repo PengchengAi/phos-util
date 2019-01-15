@@ -128,40 +128,49 @@ if __name__ == "__main__":
         print("Input directory does not exist. Exit.")
         exit(-1)
 
-    valid_cnt = 0
-
-    multi_cnt = 0
-    refer_list = []
-    label_list = []
-    stderr_avg = 0.0
-    for i in range(file_cnt):
-        # process the trigger signal
-        fn = "%08d.bin" % (i+1)
-        fn = os.path.join(input_dir, fn)
+    if os.path.isfile(input_dir):
+        fn = input_dir
         _, tri = read_bin_file(fn)
         ret = tri_process(tri, os.path.basename(fn))
-        # if not valid, continue
-        if ret is None:
-            continue
-        # if valid, do some work afterwards
-        valid_cnt += 1
-        multi, refer, label, stderr = ret
-        if multi:
-            multi_cnt += 1
-        refer_list.append(refer)
-        label_list.append(label)
-        stderr_avg += stderr
+        if ret is not None:
+            _, refer, label, _ = ret
+        print("reference:", refer, "label:", label)
+    else:
+        valid_cnt = 0
 
-    # label distribution
-    refer_list = np.array(refer_list, dtype=np.float32)
-    label_list = np.array(label_list, dtype=np.float32)
-    diff_list = label_list - refer_list
-    diff_list = np.reshape(diff_list, [-1])
-    fit_hist(diff_list)
-    
-    # average standard error
-    stderr_avg = stderr_avg / valid_cnt
+        multi_cnt = 0
+        refer_list = []
+        label_list = []
+        stderr_avg = 0.0
+        for i in range(file_cnt):
+            # process the trigger signal
+            fn = "%08d.bin" % (i+1)
+            fn = os.path.join(input_dir, fn)
+            _, tri = read_bin_file(fn)
+            ret = tri_process(tri, os.path.basename(fn))
+            # if not valid, continue
+            if ret is None:
+                continue
+            # if valid, do some work afterwards
+            valid_cnt += 1
+            multi, refer, label, stderr = ret
+            if multi:
+                multi_cnt += 1
+            refer_list.append(refer)
+            label_list.append(label)
+            stderr_avg += stderr
 
-    print("there are %d sample(s) with more than one cluster" % (multi_cnt))
-    print("average standard error in t_0:", stderr_avg)
+        # label distribution
+        refer_list = np.array(refer_list, dtype=np.float32)
+        label_list = np.array(label_list, dtype=np.float32)
+        diff_list = label_list - refer_list
+        diff_list = np.reshape(diff_list, [-1])
+        fit_hist(diff_list)
+        
+        # average standard error
+        stderr_avg = stderr_avg / valid_cnt
+
+        print("there are %d sample(s) with more than one cluster" % (multi_cnt))
+        print("average standard error in t_0:", stderr_avg)
+
     print("Finish")
