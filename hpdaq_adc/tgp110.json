@@ -1,0 +1,55 @@
+[
+    {
+        "index" : 0,
+        "name" : "Mode",
+        "value" : ["Run", "Triggered", "Gated"]
+    },
+
+    {
+        "index" : 1,
+        "name" : "Type",
+        "value" : ["Pulse", "Square", "Double Pulse", "Delayed Pulse"]
+    },
+
+    {
+        "index" : 2,
+        "name" : "Period (coarse)",
+        "value" : ["100 ns", "1 us", "10 us", "100 us", "1 ms", "10 ms", "100 ms", "1 s"]
+    },
+
+    {
+        "index" : 3,
+        "name" : "Period (fine)",
+        "value" : "1 - 10"
+    },
+
+    {
+        "index" : 4,
+        "name" : "Pulse Width (coarse)",
+        "value" : ["50 ns", "500 ns", "5 us", "50 us", "500 us", "5 ms", "50 ms", "500 ms"]
+    },
+
+    {
+        "index" : 5,
+        "name" : "Pulse Width (fine)",
+        "value" : "1 - 10"
+    },
+
+    {
+        "index" : 6,
+        "name" : "Pulse Delay (coarse)",
+        "value" : ["50 ns", "500 ns", "5 us", "50 us", "500 us", "5 ms", "50 ms", "500 ms"]
+    },
+
+    {
+        "index" : 7,
+        "name" : "Pulse Delay (fine)",
+        "value" : "1 - 10"
+    },
+
+    {
+        "index" : 8,
+        "name" : "Amplitude",
+        "value" : ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+    }
+]
