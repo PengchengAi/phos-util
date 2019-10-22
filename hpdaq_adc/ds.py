@@ -5,6 +5,10 @@ import queue
 import multiprocessing
 import numpy as np
 import matplotlib.pyplot as plt
+import meta_input
+
+dirname = os.path.dirname(__file__)
+metafile = os.path.join(dirname, "tgp110.json")
 
 class DS_hpdaq_adc():
     def __init__(self, savedir, conf, max_sample=100, dis_interval=0):
@@ -58,6 +62,8 @@ class DS_hpdaq_adc():
                 continue
             if initial_data:
                 self.makedir()
+                # input meta-data
+                meta_input.terminal_session(save_dir=self._dir, metafile=metafile)
                 initial_data = False
 
             try:

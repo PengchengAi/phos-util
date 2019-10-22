@@ -5,7 +5,6 @@ import multiprocessing
 import argparse
 import ds
 import ethernet
-import meta_input
 
 parser = argparse.ArgumentParser()
 
@@ -26,9 +25,6 @@ parser.add_argument("--verbose", type=int, default=1, help="print more informati
 
 a = parser.parse_args()
 
-dirname = os.path.dirname(__file__)
-metafile = os.path.join(dirname, "tgp110.json")
-
 if __name__ == "__main__":
     # load configuration from json file
     options = vars(a).keys()
@@ -43,9 +39,6 @@ if __name__ == "__main__":
         soft_trigger = True
     else:
         soft_trigger = False
-
-    # input meta-data
-    meta_input.terminal_session(save_dir=a.save_dir, metafile=metafile)
     
     # initialize instances and queues
     eth_inst = ethernet.Eth_hpdaq_adc(server_addr=a.server_addr, server_port=a.server_port, trigger_depth=a.tri_dep,
