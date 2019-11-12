@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import meta_input
 
-dirname = os.path.dirname(__file__)
+dirname = os.path.dirname(os.path.realpath(__file__))
 metafile = os.path.join(dirname, "tgp110.json")
 
 class DS_hpdaq_adc_filter():
